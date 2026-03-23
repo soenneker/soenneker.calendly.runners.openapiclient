@@ -15,6 +15,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Soenneker.Stoplight.OpenApiBundler.Abstract;
 
 namespace Soenneker.Calendly.Runners.OpenApiClient.Utils;
 
@@ -28,10 +29,10 @@ public sealed class FileOperationsUtil : IFileOperationsUtil
     private readonly IProcessUtil _processUtil;
     private readonly IFileUtil _fileUtil;
     private readonly IDirectoryUtil _directoryUtil;
-    private readonly StoplightOpenApiBundler _stoplightOpenApiBundler;
+    private readonly IStoplightOpenApiBundler _stoplightOpenApiBundler;
 
     public FileOperationsUtil(ILogger<FileOperationsUtil> logger, IConfiguration configuration, IGitUtil gitUtil, IDotnetUtil dotnetUtil,
-        IProcessUtil processUtil, IFileUtil fileUtil, IDirectoryUtil directoryUtil, StoplightOpenApiBundler stoplightOpenApiBundler)
+        IProcessUtil processUtil, IFileUtil fileUtil, IDirectoryUtil directoryUtil, IStoplightOpenApiBundler stoplightOpenApiBundler)
     {
         _logger = logger;
         _configuration = configuration;
@@ -52,7 +53,7 @@ public sealed class FileOperationsUtil : IFileOperationsUtil
         string bundledSpecFilePath = Path.Combine(Path.GetTempPath(), Constants.Library, "stoplight", $"{Guid.NewGuid():N}.bundled.yaml");
 
 
-        string bundledRootFilePath = await _stoplightOpenApiBundler.BundleAsync(openApiDocumentUrl, bundledSpecFilePath, cancellationToken);
+        string bundledRootFilePath = await _stoplightOpenApiBundler.Bundle(openApiDocumentUrl, bundledSpecFilePath, cancellationToken);
 
         await _processUtil.Start("dotnet", null, "tool update --global Microsoft.OpenApi.Kiota", waitForExit: true, cancellationToken: cancellationToken);
 
