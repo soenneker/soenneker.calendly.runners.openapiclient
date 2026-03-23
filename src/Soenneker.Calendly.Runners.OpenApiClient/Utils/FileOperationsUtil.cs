@@ -58,10 +58,10 @@ public sealed class FileOperationsUtil : IFileOperationsUtil
 
         string openApiDocumentUrl = _configuration["Calendly:ClientGenerationUrl"] ?? "https://stoplight.io/api/v1/projects/calendly/api-docs/nodes/reference/calendly-api/openapi.yaml";
 
-        string? filePath = await _fileDownloadUtil.Download(openApiDocumentUrl,
+        string? yamlFilePath = await _fileDownloadUtil.Download(openApiDocumentUrl,
             targetYamlPath, fileExtension: ".yaml", cancellationToken: cancellationToken);
 
-        string yaml = await _fileUtil.Read(filePath, true, cancellationToken);
+        string yaml = await _fileUtil.Read(yamlFilePath, true, cancellationToken);
 
         string? json = _yamlUtil.YamlToJson(yaml);
 
@@ -75,7 +75,7 @@ public sealed class FileOperationsUtil : IFileOperationsUtil
 
         await DeleteAllExceptCsproj(srcDirectory, cancellationToken);
 
-        await _processUtil.Start("kiota", gitDirectory, $"kiota generate -l CSharp -d \"{filePath}\" -o src/{Constants.Library} -c CalendlyOpenApiClient -n {Constants.Library}",
+        await _processUtil.Start("kiota", gitDirectory, $"kiota generate -l CSharp -d \"{targetFilePath}\" -o src/{Constants.Library} -c CalendlyOpenApiClient -n {Constants.Library}",
             waitForExit: true, cancellationToken: cancellationToken).NoSync();
 
         await BuildAndPush(gitDirectory, cancellationToken).NoSync();
