@@ -8,10 +8,7 @@ using Soenneker.Utils.Directory.Abstract;
 using Soenneker.Utils.Dotnet.Abstract;
 using Soenneker.Utils.Environment;
 using Soenneker.Utils.File.Abstract;
-using Soenneker.Utils.File.Download.Abstract;
 using Soenneker.Utils.Process.Abstract;
-using Soenneker.Utils.Yaml;
-using Soenneker.Utils.Yaml.Abstract;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -29,45 +26,33 @@ public sealed class FileOperationsUtil : IFileOperationsUtil
     private readonly IGitUtil _gitUtil;
     private readonly IDotnetUtil _dotnetUtil;
     private readonly IProcessUtil _processUtil;
-    private readonly IFileDownloadUtil _fileDownloadUtil;
     private readonly IFileUtil _fileUtil;
     private readonly IDirectoryUtil _directoryUtil;
-    private readonly IYamlUtil _yamlUtil;
+    private readonly StoplightOpenApiBundler _stoplightOpenApiBundler;
 
-    public FileOperationsUtil(ILogger<FileOperationsUtil> logger, IConfiguration configuration, IGitUtil gitUtil, IDotnetUtil dotnetUtil, IProcessUtil processUtil, 
-        IFileDownloadUtil fileDownloadUtil, IFileUtil fileUtil, IDirectoryUtil directoryUtil, IYamlUtil yamlUtil)
+    public FileOperationsUtil(ILogger<FileOperationsUtil> logger, IConfiguration configuration, IGitUtil gitUtil, IDotnetUtil dotnetUtil,
+        IProcessUtil processUtil, IFileUtil fileUtil, IDirectoryUtil directoryUtil, StoplightOpenApiBundler stoplightOpenApiBundler)
     {
         _logger = logger;
         _configuration = configuration;
         _gitUtil = gitUtil;
         _dotnetUtil = dotnetUtil;
         _processUtil = processUtil;
-        _fileDownloadUtil = fileDownloadUtil;
         _fileUtil = fileUtil;
         _directoryUtil = directoryUtil;
-        _yamlUtil = yamlUtil;
+        _stoplightOpenApiBundler = stoplightOpenApiBundler;
     }
 
     public async ValueTask Process(CancellationToken cancellationToken = default)
     {
-        string gitDirectory = await _gitUtil.CloneToTempDirectory($"https://github.com/soenneker/{Constants.Library.ToLowerInvariantFast()}", cancellationToken: cancellationToken);
+        string gitDirectory = await _gitUtil.CloneToTempDirectory($"https://github.com/soenneker/{Constants.Library.ToLowerInvariantFast()}",
+            cancellationToken: cancellationToken);
+        string openApiDocumentUrl = _configuration["Calendly:ClientGenerationUrl"] ??
+                                    "https://stoplight.io/api/v1/projects/calendly/api-docs/nodes/reference/calendly-api/openapi.yaml";
+        string bundledSpecFilePath = Path.Combine(Path.GetTempPath(), Constants.Library, "stoplight", $"{Guid.NewGuid():N}.bundled.yaml");
 
-        string targetYamlPath = Path.Combine(gitDirectory, "openapi.yaml");
 
-        await _fileUtil.DeleteIfExists(targetYamlPath, cancellationToken: cancellationToken);
-
-        string openApiDocumentUrl = _configuration["Calendly:ClientGenerationUrl"] ?? "https://stoplight.io/api/v1/projects/calendly/api-docs/nodes/reference/calendly-api/openapi.yaml";
-
-        string? yamlFilePath = await _fileDownloadUtil.Download(openApiDocumentUrl,
-            targetYamlPath, fileExtension: ".yaml", cancellationToken: cancellationToken);
-
-        string yaml = await _fileUtil.Read(yamlFilePath, true, cancellationToken);
-
-        string? json = _yamlUtil.YamlToJson(yaml);
-
-        string targetFilePath = Path.Combine(gitDirectory, "openapi.json");
-
-        await _fileUtil.Write(targetFilePath, json, true, cancellationToken);
+        string bundledRootFilePath = await _stoplightOpenApiBundler.BundleAsync(openApiDocumentUrl, bundledSpecFilePath, cancellationToken);
 
         await _processUtil.Start("dotnet", null, "tool update --global Microsoft.OpenApi.Kiota", waitForExit: true, cancellationToken: cancellationToken);
 
@@ -75,10 +60,13 @@ public sealed class FileOperationsUtil : IFileOperationsUtil
 
         await DeleteAllExceptCsproj(srcDirectory, cancellationToken);
 
-        await _processUtil.Start("kiota", gitDirectory, $"kiota generate -l CSharp -d \"{targetFilePath}\" -o src/{Constants.Library} -c CalendlyOpenApiClient -n {Constants.Library}",
-            waitForExit: true, cancellationToken: cancellationToken).NoSync();
+        await _processUtil.Start("kiota", gitDirectory,
+                              $"kiota generate -l CSharp -d \"{bundledRootFilePath}\" -o src/{Constants.Library} -c CalendlyOpenApiClient -n {Constants.Library}",
+                              waitForExit: true, cancellationToken: cancellationToken)
+                          .NoSync();
 
-        await BuildAndPush(gitDirectory, cancellationToken).NoSync();
+        await BuildAndPush(gitDirectory, cancellationToken)
+            .NoSync();
     }
 
     public async ValueTask DeleteAllExceptCsproj(string directoryPath, CancellationToken cancellationToken = default)

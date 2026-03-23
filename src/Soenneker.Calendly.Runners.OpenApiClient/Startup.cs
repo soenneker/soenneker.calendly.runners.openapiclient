@@ -2,8 +2,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Soenneker.Managers.Runners.Registrars;
 using Soenneker.Calendly.Runners.OpenApiClient.Utils;
 using Soenneker.Calendly.Runners.OpenApiClient.Utils.Abstract;
-using Soenneker.Utils.File.Download.Registrars;
-using Soenneker.Utils.Yaml.Registrars;
 
 namespace Soenneker.Calendly.Runners.OpenApiClient;
 
@@ -23,8 +21,7 @@ public static class Startup
         services.AddHostedService<ConsoleHostedService>()
                 .AddScoped<IFileOperationsUtil, FileOperationsUtil>()
                 .AddRunnersManagerAsScoped()
-                .AddFileDownloadUtilAsScoped()
-                .AddYamlUtilAsScoped();
+                .AddScoped<StoplightOpenApiBundler>();
 
         return services;
     }
