@@ -9,7 +9,6 @@ using Soenneker.Utils.Directory.Abstract;
 using Soenneker.Utils.Dotnet.Abstract;
 using Soenneker.Utils.Environment;
 using Soenneker.Utils.File.Abstract;
-using Soenneker.Utils.Process.Abstract;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,20 +26,18 @@ public sealed class FileOperationsUtil : IFileOperationsUtil
     private readonly IConfiguration _configuration;
     private readonly IGitUtil _gitUtil;
     private readonly IDotnetUtil _dotnetUtil;
-    private readonly IProcessUtil _processUtil;
     private readonly IKiotaUtil _kiotaUtil;
     private readonly IFileUtil _fileUtil;
     private readonly IDirectoryUtil _directoryUtil;
     private readonly IStoplightOpenApiBundler _stoplightOpenApiBundler;
 
-    public FileOperationsUtil(ILogger<FileOperationsUtil> logger, IConfiguration configuration, IGitUtil gitUtil, IDotnetUtil dotnetUtil,
-        IProcessUtil processUtil, IFileUtil fileUtil, IDirectoryUtil directoryUtil, IStoplightOpenApiBundler stoplightOpenApiBundler, IKiotaUtil kiotaUtil)
+    public FileOperationsUtil(ILogger<FileOperationsUtil> logger, IConfiguration configuration, IGitUtil gitUtil, IDotnetUtil dotnetUtil, IFileUtil fileUtil,
+        IDirectoryUtil directoryUtil, IStoplightOpenApiBundler stoplightOpenApiBundler, IKiotaUtil kiotaUtil)
     {
         _logger = logger;
         _configuration = configuration;
         _gitUtil = gitUtil;
         _dotnetUtil = dotnetUtil;
-        _processUtil = processUtil;
         _kiotaUtil = kiotaUtil;
         _fileUtil = fileUtil;
         _directoryUtil = directoryUtil;
@@ -64,7 +61,8 @@ public sealed class FileOperationsUtil : IFileOperationsUtil
 
         await DeleteAllExceptCsproj(srcDirectory, cancellationToken);
 
-        await _kiotaUtil.Generate(bundledRootFilePath, "CalendlyOpenApiClient", Constants.Library, gitDirectory, cancellationToken).NoSync();
+        await _kiotaUtil.Generate(bundledRootFilePath, "CalendlyOpenApiClient", Constants.Library, gitDirectory, cancellationToken)
+                        .NoSync();
 
         await BuildAndPush(gitDirectory, cancellationToken)
             .NoSync();
