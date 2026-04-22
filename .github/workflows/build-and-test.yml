@@ -38,7 +38,7 @@ jobs:
         run: dotnet build test/Soenneker.Calendly.Runners.OpenApiClient.Tests/Soenneker.Calendly.Runners.OpenApiClient.Tests.csproj --configuration Release --no-restore --verbosity minimal
 
       - name: Test
-        run: dotnet test test/Soenneker.Calendly.Runners.OpenApiClient.Tests/Soenneker.Calendly.Runners.OpenApiClient.Tests.csproj --configuration Release --no-build --no-restore --verbosity minimal
+        run: dotnet test --project test/Soenneker.Calendly.Runners.OpenApiClient.Tests/Soenneker.Calendly.Runners.OpenApiClient.Tests.csproj --configuration Release --no-build --no-restore --verbosity minimal
 
       - name: Pack
         run: dotnet pack src/Soenneker.Calendly.Runners.OpenApiClient/Soenneker.Calendly.Runners.OpenApiClient.csproj --configuration Release --no-build --no-restore --output . --verbosity minimal
