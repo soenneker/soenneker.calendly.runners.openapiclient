@@ -1,17 +1,16 @@
 using System.Threading.Tasks;
-using Soenneker.Tests.FixturedUnit;
-using Xunit;
+using Soenneker.Tests.HostedUnit;
 
 namespace Soenneker.Calendly.Runners.OpenApiClient.Tests;
 
-[Collection("Collection")]
-public sealed class CalendlyOpenApiClientRunnerTests : FixturedUnitTest
+[ClassDataSource<Host>(Shared = SharedType.PerTestSession)]
+public sealed class CalendlyOpenApiClientRunnerTests : HostedUnitTest
 {
-    public CalendlyOpenApiClientRunnerTests(Fixture fixture, ITestOutputHelper output) : base(fixture, output)
+    public CalendlyOpenApiClientRunnerTests(Host host) : base(host)
     {
     }
 
-    [Fact]
+    [Test]
     public void Default()
     {
 
