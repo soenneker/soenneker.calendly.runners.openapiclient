@@ -26,6 +26,6 @@
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.7" />
         <PackageReference Include="Soenneker.Kiota.Util" Version="4.0.12" />
         <PackageReference Include="Soenneker.Managers.Runners" Version="4.0.2046" />
-        <PackageReference Include="Soenneker.Stoplight.OpenApiBundler" Version="4.0.11" />
+        <PackageReference Include="Soenneker.Stoplight.OpenApiBundler" Version="4.0.12" />
     </ItemGroup>
 </Project>
