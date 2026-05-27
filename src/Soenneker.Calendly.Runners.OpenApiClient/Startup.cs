@@ -5,6 +5,7 @@ using Soenneker.OpenApi.Fixer.Registrars;
 using Soenneker.Calendly.Runners.OpenApiClient.Utils;
 using Soenneker.Calendly.Runners.OpenApiClient.Utils.Abstract;
 using Soenneker.Stoplight.OpenApiBundler.Registrars;
+using Soenneker.Utils.Yaml.Registrars;
 
 namespace Soenneker.Calendly.Runners.OpenApiClient;
 
@@ -26,6 +27,7 @@ public static class Startup
                 .AddRunnersManagerAsSingleton()
                 .AddOpenApiFixerAsSingleton()
                 .AddStoplightOpenApiBundlerAsSingleton()
+                .AddYamlUtilAsSingleton()
                 .AddKiotaUtilAsSingleton();
 
         return services;

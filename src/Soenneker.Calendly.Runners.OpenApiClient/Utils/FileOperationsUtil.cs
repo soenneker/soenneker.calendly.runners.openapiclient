@@ -10,6 +10,7 @@ using Soenneker.Utils.Directory.Abstract;
 using Soenneker.Utils.Dotnet.Abstract;
 using Soenneker.Utils.Environment;
 using Soenneker.Utils.File.Abstract;
+using Soenneker.Utils.Yaml.Abstract;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -32,9 +33,10 @@ public sealed class FileOperationsUtil : IFileOperationsUtil
     private readonly IFileUtil _fileUtil;
     private readonly IDirectoryUtil _directoryUtil;
     private readonly IStoplightOpenApiBundler _stoplightOpenApiBundler;
+    private readonly IYamlUtil _yamlUtil;
 
     public FileOperationsUtil(ILogger<FileOperationsUtil> logger, IConfiguration configuration, IGitUtil gitUtil, IDotnetUtil dotnetUtil, IFileUtil fileUtil,
-        IDirectoryUtil directoryUtil, IStoplightOpenApiBundler stoplightOpenApiBundler, IKiotaUtil kiotaUtil, IOpenApiFixer openApiFixer)
+        IDirectoryUtil directoryUtil, IStoplightOpenApiBundler stoplightOpenApiBundler, IYamlUtil yamlUtil, IKiotaUtil kiotaUtil, IOpenApiFixer openApiFixer)
     {
         _logger = logger;
         _configuration = configuration;
@@ -45,6 +47,7 @@ public sealed class FileOperationsUtil : IFileOperationsUtil
         _fileUtil = fileUtil;
         _directoryUtil = directoryUtil;
         _stoplightOpenApiBundler = stoplightOpenApiBundler;
+        _yamlUtil = yamlUtil;
     }
 
     public async ValueTask Process(CancellationToken cancellationToken = default)
@@ -58,8 +61,17 @@ public sealed class FileOperationsUtil : IFileOperationsUtil
 
         string bundledRootFilePath = await _stoplightOpenApiBundler.Bundle(openApiDocumentUrl, bundledSpecFilePath, cancellationToken);
 
+        string jsonPath = Path.Combine(gitDirectory, "openapi.json");
+
+        await _fileUtil.DeleteIfExists(jsonPath, cancellationToken: cancellationToken);
+
+        await _yamlUtil.SaveAsJson(bundledRootFilePath, jsonPath, true, cancellationToken);
+
         string fixedFilePath = Path.Combine(gitDirectory, "fixed.json");
-        await _openApiFixer.Fix(bundledRootFilePath, fixedFilePath, cancellationToken);
+
+        await _fileUtil.DeleteIfExists(fixedFilePath, cancellationToken: cancellationToken);
+
+        await _openApiFixer.Fix(jsonPath, fixedFilePath, cancellationToken);
 
 
         await _kiotaUtil.EnsureInstalled(cancellationToken);
