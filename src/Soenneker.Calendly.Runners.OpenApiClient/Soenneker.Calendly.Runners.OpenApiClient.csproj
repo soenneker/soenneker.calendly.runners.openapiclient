@@ -27,7 +27,7 @@
         <PackageReference Include="Soenneker.Kiota.Util" Version="4.0.85" />
         <PackageReference Include="Soenneker.Managers.Runners" Version="4.0.2376" />
         <PackageReference Include="Soenneker.OpenApi.Fixer" Version="4.0.306" />
-        <PackageReference Include="Soenneker.Stoplight.OpenApiBundler" Version="4.0.66" />
+        <PackageReference Include="Soenneker.Stoplight.OpenApiBundler" Version="4.0.67" />
         <PackageReference Include="Soenneker.Utils.Yaml" Version="4.0.133" />
     </ItemGroup>
 </Project>
