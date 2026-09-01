@@ -10,6 +10,7 @@ using Soenneker.Utils.Directory.Abstract;
 using Soenneker.Utils.Dotnet.Abstract;
 using Soenneker.Utils.Environment;
 using Soenneker.Utils.File.Abstract;
+using Soenneker.Utils.Path.Abstract;
 using Soenneker.Utils.Yaml.Abstract;
 using System;
 using System.Collections.Generic;
@@ -32,11 +33,13 @@ public sealed class FileOperationsUtil : IFileOperationsUtil
     private readonly IOpenApiFixer _openApiFixer;
     private readonly IFileUtil _fileUtil;
     private readonly IDirectoryUtil _directoryUtil;
+    private readonly IPathUtil _pathUtil;
     private readonly IStoplightOpenApiBundler _stoplightOpenApiBundler;
     private readonly IYamlUtil _yamlUtil;
 
     public FileOperationsUtil(ILogger<FileOperationsUtil> logger, IConfiguration configuration, IGitUtil gitUtil, IDotnetUtil dotnetUtil, IFileUtil fileUtil,
-        IDirectoryUtil directoryUtil, IStoplightOpenApiBundler stoplightOpenApiBundler, IYamlUtil yamlUtil, IKiotaUtil kiotaUtil, IOpenApiFixer openApiFixer)
+        IDirectoryUtil directoryUtil, IPathUtil pathUtil, IStoplightOpenApiBundler stoplightOpenApiBundler, IYamlUtil yamlUtil, IKiotaUtil kiotaUtil,
+        IOpenApiFixer openApiFixer)
     {
         _logger = logger;
         _configuration = configuration;
@@ -46,6 +49,7 @@ public sealed class FileOperationsUtil : IFileOperationsUtil
         _openApiFixer = openApiFixer;
         _fileUtil = fileUtil;
         _directoryUtil = directoryUtil;
+        _pathUtil = pathUtil;
         _stoplightOpenApiBundler = stoplightOpenApiBundler;
         _yamlUtil = yamlUtil;
     }
@@ -56,7 +60,8 @@ public sealed class FileOperationsUtil : IFileOperationsUtil
             cancellationToken: cancellationToken);
         string openApiDocumentUrl = _configuration["Calendly:ClientGenerationUrl"] ??
                                     "https://stoplight.io/api/v1/projects/calendly/api-docs/nodes/reference/calendly-api/openapi.yaml";
-        string bundledSpecFilePath = Path.Combine(Path.GetTempPath(), Constants.Library, "stoplight", $"{Guid.NewGuid():N}.bundled.yaml");
+        string bundleDirectory = await _pathUtil.GetUniqueTempDirectory($"{Constants.Library}-stoplight", cancellationToken: cancellationToken).NoSync();
+        string bundledSpecFilePath = Path.Combine(bundleDirectory, "openapi.bundled.yaml");
 
 
         string bundledRootFilePath = await _stoplightOpenApiBundler.Bundle(openApiDocumentUrl, bundledSpecFilePath, cancellationToken);

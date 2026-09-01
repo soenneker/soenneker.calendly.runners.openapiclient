@@ -6,6 +6,9 @@ using Soenneker.Calendly.Runners.OpenApiClient.Utils;
 using Soenneker.Calendly.Runners.OpenApiClient.Utils.Abstract;
 using Soenneker.Stoplight.OpenApiBundler.Registrars;
 using Soenneker.Utils.Yaml.Registrars;
+using Soenneker.Utils.Directory.Registrars;
+using Soenneker.Utils.File.Registrars;
+using Soenneker.Utils.Path.Registrars;
 
 namespace Soenneker.Calendly.Runners.OpenApiClient;
 
@@ -34,6 +37,9 @@ public static class Startup
         services.AddHostedService<ConsoleHostedService>()
                 .AddSingleton<IFileOperationsUtil, FileOperationsUtil>()
                 .AddRunnersManagerAsSingleton()
+                .AddDirectoryUtilAsSingleton()
+                .AddFileUtilAsSingleton()
+                .AddPathUtilAsSingleton()
                 .AddOpenApiFixerAsSingleton()
                 .AddStoplightOpenApiBundlerAsSingleton()
                 .AddYamlUtilAsSingleton()
